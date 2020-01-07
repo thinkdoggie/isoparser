@@ -1,10 +1,13 @@
 from __future__ import absolute_import
+
+import six
+
 from . import iso, source
 
 
-def parse(path_or_url, cache_content=False, min_fetch=16):
+def parse(iso_file, cache_content=False, min_fetch=16):
     """
-    Returns an :class:`ISO` object for the given filesystem path or URL.
+    Returns an :class:`ISO` object for the given filesystem path, URL or file-like object.
 
     cache_content:
       Whether to store sectors backing file content in the sector cache. If true, this will
@@ -16,8 +19,16 @@ def parse(path_or_url, cache_content=False, min_fetch=16):
       The smallest number of sectors to fetch in a single operation, to speed up sequential
       accesses, e.g. for directory traversal.  Defaults to 16 sectors, or 32 KiB.
     """
-    if path_or_url.startswith("http"):
-        src = source.HTTPSource(path_or_url, cache_content=cache_content, min_fetch=min_fetch)
+    if isinstance(iso_file, six.string_types):
+        if iso_file.startswith("http://") or iso_file.startswith("https://"):
+            url = iso_file
+            src = source.HTTPSource(url, cache_content=cache_content, min_fetch=min_fetch)
+        else:
+            path = iso_file
+            fp = open(path, 'rb')
+            src = source.FileSource(fp, cache_content=cache_content, min_fetch=min_fetch)
     else:
-        src = source.FileSource(path_or_url, cache_content=cache_content, min_fetch=min_fetch)
+        fp = iso_file
+        src = source.FileSource(fp, cache_content=cache_content, min_fetch=min_fetch)
+
     return iso.ISO(src)

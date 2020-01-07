@@ -217,9 +217,11 @@ class FileStream(object):
 
 
 class FileSource(Source):
-    def __init__(self, path, **kwargs):
+    def __init__(self, fp, **kwargs):
         super(FileSource, self).__init__(**kwargs)
-        self._file = open(path, 'rb')
+        if not (hasattr(fp, 'read') and hasattr(fp, 'seek')):
+            raise ValueError("File not open for binary reading")
+        self._file = fp
 
     def _fetch(self, sector, count=1):
         self._file.seek(sector*SECTOR_LENGTH)
