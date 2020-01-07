@@ -1,3 +1,5 @@
+import six
+
 from . import susp, rockridge
 
 
@@ -50,6 +52,9 @@ class ISO(object):
         """
         Retrieves a record for the given path.
         """
+        # Path must be converted to binary string as same as the path table before lookup
+        path = [part if isinstance(part, six.binary_type) else part.encode() for part in path]
+
         record = None
         if self._source.rockridge:
             # In Rock Ridge mode, we can't use the path table
